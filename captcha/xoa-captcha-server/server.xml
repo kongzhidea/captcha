@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+		 http://www.springframework.org/schema/beans 
+		 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+		 http://www.springframework.org/schema/context  
+	     http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+	 ">
+
+    <!-- spring扫描该包下所有类 -->
+    <context:component-scan base-package="com.kk.captcha"/>
+
+    <!-- 读取properties文件 -->
+    <context:property-placeholder location="classpath:*.properties"/>
+
+    <!-- 定义启动类 -->
+    <bean id="captchaServiceImpl" class="com.kk.captcha.server.CaptchaServiceImpl">
+        <property name="port" value="${server.port}"/>
+        <property name="threadNum" value="${server.threadNum}"/>
+        <property name="version" value="${server.version}"/>
+        <property name="serverName" value="${server.serverName}"/>
+        <property name="captchaManager" ref="captchaManager"/>
+    </bean>
+
+    <!-- redis 单点配置 -->
+    <bean id="redisService" class="com.kk.captcha.service.RedisService" init-method="init">
+        <property name="host" value="${redis.host}" />
+        <property name="port" value="${redis.port}" />
+        <property name="password" value="${redis.password}" />
+        <property name="jPoolCfgMaxActive" value="${redis.jPoolCfgMaxActive}" />
+        <property name="jPoolCfgMaxIdle" value="${redis.jPoolCfgMaxIdle}" />
+        <property name="jPoolCfgMaxWait" value="${redis.jPoolCfgMaxWait}" />
+    </bean>
+
+    <bean id="cacheService" class="com.kk.captcha.cache.RedisCacheService">
+        <property name="redisProxy" ref="redisService"></property>
+    </bean>
+
+    <bean id="captchaManager" class="com.kk.captcha.manager.CaptchaManagerImpl">
+        <property name="cacheService" ref="cacheService"></property>
+    </bean>
+
+</beans>
